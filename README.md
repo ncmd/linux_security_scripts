@@ -1,2 +1,3 @@
-# sh
-scripts
+# Linux Security Scripts
+
+Made for portfolio
