@@ -1,1 +1,0 @@
-#https://www.freebsd.org/doc/handbook/network-dns.html
