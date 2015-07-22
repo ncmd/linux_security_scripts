@@ -27,7 +27,3 @@
 \echo "COMMIT" >> /etc/iptables/rulez
 \iptables-save
 
-
-echo "OUTB IN HOT - nF"
-echo "OUTB IN HOT - nF"
-echo "OUTB IN HOT - nF"
