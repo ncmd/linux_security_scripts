@@ -20,7 +20,7 @@ sed '/0.0.0.0/d' /tmp/\ /foundHosts.txt > /tmp/\ /filterHosts1.txt
 sed '/^$/d' /tmp/\ /filterHosts1.txt > /tmp/\ /filterHosts2.txt
 sed '/./!d' /tmp/\ /filterHosts2.txt > /tmp/\ /filterHosts3.txt
 # Sorting found IP addresses
-grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" /tmp/\ /foundHosts3.txt | sort > /tmp/\ /foundHostsSorted.txt
+grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" /tmp/\ /filterHosts3.txt | sort > /tmp/\ /foundHostsSorted.txt
 # Shows contents of found IP addresses
 cp /tmp/\ /foundHostsSorted.txt /root/foundHostsSorted.txt
 cat /root/foundHostsSorted.txt
