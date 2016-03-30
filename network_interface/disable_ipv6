@@ -1,8 +1,0 @@
-# 
-# /sbin/ip -6 addr del <ipv6address>/<prefixlength> dev <interface> 
-
-
-# /sbin/ip -6 addr del 2001:0db8:0:f101::1/64 dev eth0 
-
-
-# /sbin/ifconfig eth0 inet6 del 2001:0db8:0:f101::1/64

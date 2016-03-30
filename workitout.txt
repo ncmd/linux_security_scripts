@@ -1,4 +1,0 @@
-iftop
-iptraf
-tptstate
-colortail
