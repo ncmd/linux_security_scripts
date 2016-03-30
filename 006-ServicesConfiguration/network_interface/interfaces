@@ -1,0 +1,12 @@
+auto lo
+iface lo inet loopback
+
+allow-hotplug eth0
+
+iface eth0 inet static
+address 172.16.103.22
+netmask 255.255.0.0
+network 172.16.103.0
+broadcast 172.16.103.255
+gateway 172.16.0.1
+dns-nameservers 172.16.0.5 172.16.0.6
