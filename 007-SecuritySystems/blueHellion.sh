@@ -8,15 +8,17 @@
 # For the Blue Team, paranoid AF~~~ Blowing away the Red Team Zerglings!
 # Can you hide from lsof? I hope so...
 # 
+# Only way to stop this is to stop daemon: 
+# ~# service blueHellion stop
+#
 # The following 3 lines makes this script a daemon:
 wget https://raw.githubusercontent.com/terminalcloud/terminal-tools/master/daemonize.sh  
 chmod +x daemonize.sh 
-./daemonize.sh NotMalware /root/blueHellion.sh
+./daemonize.sh blueHellion /root/blueHellion.sh
  
-touch /tmp/capturedEstablishedProcess.txt
+touch /tmp/capturedEstablishedProcess.txt /root/IPSLog.csv
 cat /dev/null > /tmp/capturedEstablishedProcess.txt
-touch /root/IPSLog.csv
-echo ">>>>>Script Run at $(date)<<<<<----------------------------" >> /root/IPSLog.csv
+echo ">>>>>Script Run at $(date)<<<<<------------------" >> /root/IPSLog.csv
 bools=true
 # Begin Loop 1.0
 while [ $bools=true ]
@@ -25,9 +27,6 @@ do
 if [[ $(cat /tmp/capturedEstablishedProcess.txt) ]]; then
 # Make inFile = true
 inFile=true
-else
-# Else, make inFile = false
-inFile=false
 # End Loop 2.1
 fi
 # Begin Loop 2.2
@@ -53,7 +52,7 @@ sleep 3 && kill $inPort > /dev/null 2>&1 && echo $sIP" ===> $(date) Found and Ki
 iptables -A OUTPUT -p tcp -s $sIP -j DROP
 iptables -A OUTPUT -p udp -s $sIP -j DROP
 # Remove duplicate iptables-rules
-iptables-save | uniq | iptalbes-restore
+iptables-save | uniq | iptables-restore
 echo "Check /root/IPSLog.csv!"
 # End Loop 3.3
 inFile=false
