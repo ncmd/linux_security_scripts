@@ -1,12 +1,22 @@
 #!/bin/bash
-# Kills >> Established << connections on any port
+# Charles M. Chong
+# 1. Lists all open files with a TCP Established Connection
+# 2. Kills >> Established << connections on any port
+# 3. Creates a egress rules per IP found
+# 4. Logs found hosts with timestamp and file calling out to .cvs file
+#
 # For the Blue Team, paranoid AF~~~ Blowing away the Red Team Zerglings!
 # Can you hide from lsof? I hope so...
-
+# 
+# The following 3 lines makes this script a daemon:
+wget https://raw.githubusercontent.com/terminalcloud/terminal-tools/master/daemonize.sh  
+chmod +x daemonize.sh 
+./daemonize.sh NotMalware /root/blueHellion.sh
+ 
 touch /tmp/capturedEstablishedProcess.txt
 cat /dev/null > /tmp/capturedEstablishedProcess.txt
 touch /root/IPSLog.csv
-cat /dev/null > /root/IPSLog.csv
+echo ">>>>>Script Run at $(date)<<<<<----------------------------" >> /root/IPSLog.csv
 bools=true
 # Begin Loop 1.0
 while [ $bools=true ]
@@ -35,10 +45,15 @@ if [[ $inFile = true ]]; then
 # Output /tmp/capturedEstablishedProcess.txt, for every line in file, do Loop 3.3
 cat /tmp/capturedEstablishedProcess.txt | while read inPort ; do
 # Output Port # found
-# Sleep 3 seconds, kill process
+# Epty file because there would be an endless loop to kill the same process
 cat /dev/null > /tmp/capturedEstablishedProcess.txt
-# Logging it to Syslog
+# Sleep 3 seconds, kill process, make an entry to Syslog, tail the last line in Syslog
 sleep 3 && kill $inPort > /dev/null 2>&1 && echo $sIP" ===> $(date) Found and Killed Session "$inPort$ >> /var/log/syslog && tail -n 1 /var/log/syslog &
+# Create a Firewall Outbound rule for egress filtering
+iptables -A OUTPUT -p tcp -s $sIP -j DROP
+iptables -A OUTPUT -p udp -s $sIP -j DROP
+# Remove duplicate iptables-rules
+iptables-save | uniq | iptalbes-restore
 echo "Check /root/IPSLog.csv!"
 # End Loop 3.3
 inFile=false
