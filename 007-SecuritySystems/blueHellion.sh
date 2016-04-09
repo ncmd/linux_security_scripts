@@ -11,10 +11,10 @@
 # Only way to stop this is to stop daemon: 
 # ~# service blueHellion stop
 #
-# The following 3 lines makes this script a daemon:
-wget https://raw.githubusercontent.com/terminalcloud/terminal-tools/master/daemonize.sh  
-chmod +x daemonize.sh 
-./daemonize.sh blueHellion /root/blueHellion.sh
+# The following 3 lines makes this script a daemon (run it separately from this script):
+# ~# wget https://raw.githubusercontent.com/terminalcloud/terminal-tools/master/daemonize.sh  
+# ~# chmod +x daemonize.sh 
+# ~# ./daemonize.sh blueHellion /root/blueHellion.sh
  
 touch /tmp/capturedEstablishedProcess.txt /root/IPSLog.csv
 cat /dev/null > /tmp/capturedEstablishedProcess.txt
@@ -28,6 +28,8 @@ if [[ $(cat /tmp/capturedEstablishedProcess.txt) ]]; then
 # Make inFile = true
 inFile=true
 # End Loop 2.1
+else
+inFile=false
 fi
 # Begin Loop 2.2
 if [[ $inFile = false ]]; then
@@ -46,9 +48,11 @@ cat /tmp/capturedEstablishedProcess.txt | while read inPort ; do
 # Output Port # found
 # Epty file because there would be an endless loop to kill the same process
 cat /dev/null > /tmp/capturedEstablishedProcess.txt
-# Sleep 3 seconds, kill process, make an entry to Syslog, tail the last line in Syslog
+# Sleep 3 seconds, make an entry to Syslog, tail the last line in Syslog
 sleep 3 && kill $inPort > /dev/null 2>&1 && echo $sIP" ===> $(date) Found and Killed Session "$inPort$ >> /var/log/syslog && tail -n 1 /var/log/syslog &
-# Create a Firewall Outbound rule for egress filtering
+# Add kill process feature (may kill critical services...)
+# sleep 3 && kill $inPort > /dev/null 2>&1 && echo $sIP" ===> $(date) Found and Killed Session "$inPort$ >> /var/log/syslog && tail -n 1 /var/log/syslog &
+# Create a Firewall Outbound rule for Egress filtering
 iptables -A OUTPUT -p tcp -s $sIP -j DROP
 iptables -A OUTPUT -p udp -s $sIP -j DROP
 # Remove duplicate iptables-rules
