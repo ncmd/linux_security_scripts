@@ -1,0 +1,3 @@
+# Inventory Servers & Services
+# 1. Confirm with Business who is allowed to login to specific server
+# 2. Check auth.log, syslog, audit.log for successful/opened connections
