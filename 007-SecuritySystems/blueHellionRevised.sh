@@ -51,10 +51,9 @@ while [ $bools=true ]
 do
 # If something in /tmp/capturedIPs.txt file
 # Start Loop 2.1
-if [[ $(cat /tmp/capturedIPs.txt) ]]; then
+if [[ $(cat /tmp/capturedIPsSORTED.txt) ]]; then
 # Make inFile = true
 inFile=true
-echo "inFile True"
 else
 inFile=false
 # End Loop 2.1
@@ -62,13 +61,19 @@ fi
 # Begin Loop 2.2
 if [[ $inFile = false ]]; then
 # Get IPv4 Addresses of Established Sessions, if they exist, append to /tmp/capturedIPs.txt
-lsof -Pnl +M -i4| grep -e ESTABLISHED | grep -o ">.*" | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sort | uniq >> /tmp/capturedIPs.txt
+lsof -Pnl +M -i4| grep -e ESTABLISHED | grep -o ">.*" | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sort | uniq > /tmp/capturedIPs.txt
 ## Declare sPID variable = PID of Established Process
 #sPID=$(lsof -Pnl +M -i4 | grep -v rsyslogd | grep -e ESTABLISHED | grep ":.*" | grep '\<[0-9]\{3,5\}\>' | sed /COMMAND/d | awk '{print $2}' | uniq ) > /tmp/capturedPIDs.txt
 # Declare sIP variable = IP of Established Process
 sIP=$(lsof -Pnl +M -i4 | grep -e ESTABLISHED | grep -o ">.*" | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | uniq ) 
 # sort CapturedIPs and remove Duplicates
 cat /tmp/capturedIPs.txt | sort -u | uniq > /tmp/capturedIPsSORTED.txt
+cat /root/whitelist.txt | while read rWhitelist ; do
+cat /tmp/capturedIPsSORTED.txt | grep -v $rWhitelist > /tmp/revisedIPlist.txt
+iptables -D OUTPUT -s $rWhitelist -j DROP 2> /dev/null
+iptables -D INPUT -s $rWhitelist -j DROP 2> /dev/null
+cat /dev/null > /tmp/dropRuleCheck
+done
 # End Loop 2.2
 fi
 # If inFile = true
@@ -77,10 +82,9 @@ if [[ $inFile = true ]]; then
 # Read capturedIPs.txt, for each line, empty capturedIPs file
 # Begin Loop 3.1
 cat /tmp/capturedIPsSORTED.txt | while read sIPAddress ; do
-echo "Reading CapturedIP"
+echo "Reading CapturedIP: " $sIPAddress
 # Output Port # found
 # Create a Firewall Outbound rule for Egress filtering
-echo $sIPAddress
 iptables -C OUTPUT -s $sIPAddress -j DROP 2> /tmp/duplicateRuleCheck
 iptables -C INPUT -s $sIPAddress -j DROP 2> /tmp/duplicateRuleCheck
 # Begin Loop 4.1
@@ -89,23 +93,27 @@ echo "Killing $sIPAddress Connection in 3 seconds..."
 sleep 3
 iptables -A OUTPUT -s $sIPAddress -j DROP
 iptables -A INPUT -s $sIPAddress -j DROP
-tcpkill host $sIPAddress -9
+timeout 3 tcpkill host $sIPAddress -9
 echo "Created Rule for "$sIPAddress
 # lsof the sIPAddress
 echo "Identify IP-------------------------------------------"
-sPID=$(lsof -Pnl +M -i4 | grep $sIPAddress | grep ":.*" | grep '\<[0-9]\{3,5\}\>' | sed /COMMAND/d | awk '{print $2}' | uniq ) > /tmp/capturedPIDs.txt
-echo "Killing PID: "$sPID
-kill $sPID
+lsof -Pnl +M -i4 | grep $sIPAddress | grep ":.*" | grep '\<[0-9]\{3,5\}\>' | sed /COMMAND/d | awk '{print $2}' | uniq > /tmp/capturedPIDs.txt
+# Loop to kill processes
+cat /tmp/capturedPIDs.txt | while read sProcessID ; do
+echo "Killing PID: "$sProcessID
+kill $sProcessID
+done
+cat /dev/null > /tmp/capturedPIDs.txt
 cat /dev/null > /tmp/duplicateRuleCheck
 # End Loop 4.1
 fi
 # Comma Delimited
 echo "$(date),"$sPID","$sIP"\n"  >> /root/IPSLog.csv
 # End Loop 3.1
+cat /dev/null > /tmp/capturedIPsSORTED.txt
 done
 # End Loop 2.3
 # Empty file because there would be an endless loop to kill the same process
-cat /dev/null > /tmp/capturedIPs.txt
 fi
 # End Loop 1.0
 done
